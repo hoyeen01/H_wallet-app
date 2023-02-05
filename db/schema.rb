@@ -10,10 +10,26 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2023_02_04_094044) do
+ActiveRecord::Schema.define(version: 2023_02_05_145704) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "transactions", force: :cascade do |t|
+    t.float "amount", null: false
+    t.integer "txn_type", limit: 2, null: false
+    t.integer "status", limit: 2, null: false
+    t.bigint "source_id", null: false
+    t.string "source_type", null: false
+    t.bigint "destination_id", null: false
+    t.string "destination_type", null: false
+    t.string "txn_ref", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["destination_id", "destination_type"], name: "index_transactions_on_destination_id_and_destination_type"
+    t.index ["source_id", "source_type"], name: "index_transactions_on_source_id_and_source_type"
+    t.index ["txn_ref"], name: "index_transactions_on_txn_ref", unique: true
+  end
 
   create_table "users", force: :cascade do |t|
     t.string "first_name", null: false
@@ -26,6 +42,15 @@ ActiveRecord::Schema.define(version: 2023_02_04_094044) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["email"], name: "index_users_on_email", unique: true
+  end
+
+  create_table "wallets", force: :cascade do |t|
+    t.bigint "user_id"
+    t.integer "settled_balance", default: 0
+    t.integer "status", limit: 2
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["user_id"], name: "index_wallets_on_user_id"
   end
 
 end

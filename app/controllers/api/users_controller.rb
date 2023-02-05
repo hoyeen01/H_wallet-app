@@ -1,4 +1,6 @@
 class Api::UsersController < ApiController
+    before_action :authenticate, only: [:update]
+    
     def create
         @user = User.create(user_params)
         if @user.valid?
@@ -12,7 +14,7 @@ class Api::UsersController < ApiController
     end
 
     def update
-        @user = User.update(user_params)
+        @user.update(user_params)
         if @user.valid?
             render json: { message: 'User updated successfully' }
         else

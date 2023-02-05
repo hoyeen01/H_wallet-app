@@ -6,7 +6,7 @@ class TokenService
         JWT.encode(payload, SECRET)
     end
 
-    def self.decode
+    def self.decode(token)
         return JWT.decode(token, SECRET, true)
     end
 end

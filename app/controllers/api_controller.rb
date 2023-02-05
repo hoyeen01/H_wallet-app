@@ -6,9 +6,13 @@ class ApiController < ActionController::Base
    def handle_api_error(e)
       case e
       when ActionController::ParameterMissing
-        return render json: { message: param_missing_message(e.message) }, status: :bad_request
+        render json: { message: param_missing_message(e.message) }, status: :bad_request
+      when JWT::ExpiredSignature
+        render json: { message: 'Token has expired' }, status: :bad_request
+      when JWT::DecodeError
+        render json: { message: 'Token is invalid' }, status: :bad_request
       else
-        render json: { message: 'Internal Server Error'}, status: :internal_server_error
+        render json: { message: 'Internal Server Error' }, status: :internal_server_error
       end
 
       Rails.logger.error(e)if Rails.env.development?
@@ -28,5 +32,14 @@ class ApiController < ActionController::Base
       elsif message.match?(/empty: name/)
         'Name is missing'
       end
+    end
+
+    def authenticate
+       token = request.headers['Authorization']&.split&.last
+       return render json: { message: 'No token provided' } if token.blank?
+
+       payload = TokenService.decode(token)
+       user_id = payload[0]['id']
+       @user = User.find(user_id)
     end
 end

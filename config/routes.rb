@@ -31,5 +31,7 @@ Rails.application.routes.draw do
   namespace :api do
     resource :sessions, only: [:create]
     resource :users, only: [:create , :update] 
+    resource :wallet, only: [:show]
+
   end
 end
