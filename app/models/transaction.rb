@@ -18,8 +18,10 @@ class Transaction < ApplicationRecord
     belongs_to :source, polymorphic: true
     belongs_to :destination, polymorphic: true
 
-    validates :source_id, :source_type, presence: true
-    #validates :destination, :destination_type, presence: true
+    attr_accessor :skip_source, :skip_destination
+
+    validates :source_id, :source_type, presence: true, if: -> { !skip_source }
+    validates :destination_id, :destination_type, presence: true, if: -> { !skip_destination }
     validates :txn_ref, presence: true
     validates :txn_ref, uniqueness: true
 
@@ -38,12 +40,17 @@ class Transaction < ApplicationRecord
         cancelled: 2,
     }
 
+    def user
+        return source&.user if source.present?
+        return destination&.user
+    end
+
     def check_txn_ref
         return if txn_ref.present?
 
         loop do
             ref = SecureRandom.hex(10)
-            next if Transaction.find_by(txn_ref: ref).any?
+            next if Transaction.where(txn_ref: ref).any?
 
             break self.txn_ref = ref
         end

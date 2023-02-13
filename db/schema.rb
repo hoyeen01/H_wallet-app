@@ -10,10 +10,23 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2023_02_05_145704) do
+ActiveRecord::Schema.define(version: 2023_02_06_073833) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "debit_cards", force: :cascade do |t|
+    t.string "authorization_code", null: false
+    t.string "last4", null: false
+    t.string "exp_month", null: false
+    t.string "exp_year", null: false
+    t.string "card_type", null: false
+    t.string "bank", null: false
+    t.bigint "user_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["user_id"], name: "index_debit_cards_on_user_id"
+  end
 
   create_table "transactions", force: :cascade do |t|
     t.float "amount", null: false

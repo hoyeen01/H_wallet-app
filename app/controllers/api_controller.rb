@@ -12,6 +12,7 @@ class ApiController < ActionController::Base
       when JWT::DecodeError
         render json: { message: 'Token is invalid' }, status: :bad_request
       else
+        return
         render json: { message: 'Internal Server Error' }, status: :internal_server_error
       end
 
@@ -31,6 +32,16 @@ class ApiController < ActionController::Base
         'Status is missing'
       elsif message.match?(/empty: name/)
         'Name is missing'
+      elsif message.match?(/empty: cvv/)
+        'cvv is missing'
+      elsif message.match?(/empty: number/)
+        'number is missing'
+      elsif message.match?(/empty: expiry_month/)
+        'expiry_month is missing'
+      elsif message.match?(/empty: expiry_year/)
+        'expiry_year is missing'
+      else
+        'Missing parameter'
       end
     end
 
