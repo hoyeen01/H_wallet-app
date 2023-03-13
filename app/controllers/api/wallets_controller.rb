@@ -4,6 +4,7 @@ class Api::WalletsController < ApiController
     before_action :set_transaction, only: [:send_otp, :send_pin]
     before_action :authenticate
     before_action :find_or_create_wallet
+    before_action :set_destination, only: [:transfer]
     
     def show
         render json: @wallet.api_output, status: :ok
@@ -21,6 +22,35 @@ class Api::WalletsController < ApiController
 
         parse_paystack_response(response)
     end
+
+    def transfer
+      amount = params.require(:amount).to_i
+      return render json: { message: 'Insufficient balance' }, status: :bad_request if amount > @wallet.settled_balance
+      return render json: { message: 'Invalid destination' }, status: :bad_request if @wallet == @destination
+  
+      @transaction = @wallet.create_debit_transaction(amount, destination: @destination)
+      # Ignore paystack actual response, we need to contact them to register us before this
+      # API works
+      PaystackService::Transfer.initiate(
+        transaction: @transaction,
+        reason: params[:reason] || ''
+      )
+  
+      render json: { message: 'Your transaction is pending' }
+    end
+  
+    def set_destination
+      account_id = params[:account_id]
+      case params[:account_type]
+      when 'bank_account'
+        @destination = BankAccount.find(account_id)
+      when 'wallet'
+        @destination = Wallet.find(account_id)
+      end
+  
+      render json: { message: 'Destination does not exist' }, status: :not_found if @destination.blank?
+    end
+  
 
     def find_or_create_wallet
         return @wallet = @user.wallet if @user.wallet.present?
@@ -46,6 +76,15 @@ class Api::WalletsController < ApiController
         else
           return render json: response['data']
         end
+    end
+
+    def parse_paystack_transfer_response(response)
+      if response['status'] == false
+        @transaction.update!(status: :cancelled)
+        raise StandardError, response['message']
+      else
+        return true
+      end
     end
 
     def set_transaction 

@@ -36,7 +36,7 @@ class Api::UsersController < ApiController
             email: params[:email],
             password: params[:password],
             dob: params[:dob],
-            address: params[:adddress]
+            address: params[:address]
         }.compact
     end
 end

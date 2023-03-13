@@ -1,3 +1,14 @@
+# == Schema Information
+#
+# Table name: wallets
+#
+#  id              :bigint           not null, primary key
+#  user_id         :bigint
+#  settled_balance :integer          default(0)
+#  status          :integer
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#
 class Wallet < ApplicationRecord
     belongs_to :user
 
@@ -44,4 +55,14 @@ class Wallet < ApplicationRecord
     
         transaction
     end
+
+    def create_debit_transaction(amount, status: :pending, destination: nil)
+        Transaction.create!(
+          amount: amount,
+          source: self,
+          destination: destination,
+          txn_type: :type_debit,
+          status: status,
+        )
+      end
 end
